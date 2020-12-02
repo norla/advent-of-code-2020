@@ -1,4 +1,4 @@
-numbers = File.readlines("d1-input.txt").map{ |s| s.to_i }
+numbers = File.readlines("d1.txt").map{ |s| s.to_i }
 
 pair = numbers.permutation(2).find{ |p| p[0] + p[1] == 2020 }
 puts "Part 1", pair[0] * pair[1]
