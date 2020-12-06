@@ -13,7 +13,7 @@ required = {
   "eyr" => lambda { |x| !!(x =~ /^[0-9]{4}$/) && x.to_i.between?(2020, 2030) },
   "hgt" => lambda { |x|
     hgt, unit = x.match(/^([0-9]+)(cm|in)$/)&.captures
-    hgt && (unit == "cm" ? hgt&.to_i.between?(150, 193) : hgt&.to_i.between?(59, 76))
+    unit == "cm" ? hgt.to_i.between?(150, 193) : hgt.to_i.between?(59, 76)
   },
   "hcl" => lambda { |x| !!(x =~ /^#[0-9a-f]{6}$/) },
   "pid" => lambda { |x| !!(x =~ /^[0-9]{9}$/) },
