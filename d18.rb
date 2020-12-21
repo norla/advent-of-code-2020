@@ -1,65 +1,39 @@
-#!/usr/bin/env ruby
-# input = "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2".gsub(" ", "")
-def scan(str)
-  op = total = nil
+def scan(str, &evaluator)
   i = 0
-  until i == str.length
-    if str[i] =~ /[\+\*]/
-      op = str[i]
-      i = i + 1
-    else
-      num = if str[i] == "("
-          expr = sub_expr(str[i..str.length])
-          i = i + expr.length
-          scan(expr[1..(expr.length - 2)])
-        else
-          i = i + 1
-          str[i - 1].to_i
-        end
-      if (total == nil)
-        total = num
-      else
-        # p total, num, op
-        total = op == "+" ? (total + num) : (total * num)
-      end
-    end
-  end
-  puts "%s -> %d" % [str, total]
-  total
-end
-
-def scan2(str)
-  i = 0
-  acc = ""
+  expr = ""
   until i == str.length
     if str[i] == "("
-      expr = sub_expr(str[i..str.length])
-      i = i + expr.length
-      acc << scan2(expr[1..(expr.length - 2)])
+      matching_parens = matching_parens_index(str[i..str.length])
+      expr << scan(str[i+1..(matching_parens + i - 1)], &evaluator)
+      i = i + matching_parens
     else
-      acc << str[i]
-      i += 1
+      expr << str[i]
     end
+    i += 1
   end
-  acc = acc.gsub(/(\d+)\+(\d+)/) { |m| m.split("+").map(&:to_i).reduce(:+) } while acc =~ /\+/
-  acc = acc.gsub(/(\d+)\*(\d+)/) { |m| m.split("*").map(&:to_i).reduce(:*) } while acc =~ /\*/
-  acc
+  evaluator.call(expr)
 end
 
-def sub_expr(str)
+def matching_parens_index(str)
   balance = 0
-  ret = ""
-  str.split("").find { |c|
-    ret += c
-    balance = balance + 1 if (c == "(")
-    balance = balance - 1 if (c == ")")
-    return ret if (balance == 0)
+  str.split("").each_with_index { |c, i|
+    balance += 1 if c == "("
+    balance -= 1 if c == ")"
+    return i if (balance == 0)
   }
 end
 
 input = File.readlines("d18.txt").map { |l| l.gsub(" ", "").gsub("\n", "") }
-res = input.map { |l| scan(l) }.reduce(:+)
-puts "Part 1: %d" % [res]
 
-res = input.map { |l| scan2(l).to_i }.reduce(:+)
-puts res
+part_1_eval = lambda { |expr|
+  start = expr.scan(/\d+/)[0].to_i
+  expr.scan(/\D\d+/).reduce(start) { |acc, e| eval("#{acc}#{e}") }.to_s
+}
+puts "Part 1: %d" % [input.map { |l| scan(l, &part_1_eval).to_i}.reduce(:+)]
+
+part_2_eval = lambda { |expr|
+  expr.split("*").map{|e| eval(e)}.reduce(:*).to_s
+}
+puts "Part 2: %d" % [input.map { |l| scan(l, &part_2_eval).to_i}.reduce(:+)]
+
+puts scan("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2".gsub(" ", ""), &part_1_eval)
