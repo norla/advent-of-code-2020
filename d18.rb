@@ -28,6 +28,24 @@ def scan(str)
   total
 end
 
+def scan2(str)
+  i = 0
+  acc = ""
+  until i == str.length
+    if str[i] == "("
+      expr = sub_expr(str[i..str.length])
+      i = i + expr.length
+      acc << scan2(expr[1..(expr.length - 2)])
+    else
+      acc << str[i]
+      i += 1
+    end
+  end
+  acc = acc.gsub(/(\d+)\+(\d+)/) { |m| m.split("+").map(&:to_i).reduce(:+) } while acc =~ /\+/
+  acc = acc.gsub(/(\d+)\*(\d+)/) { |m| m.split("*").map(&:to_i).reduce(:*) } while acc =~ /\*/
+  acc
+end
+
 def sub_expr(str)
   balance = 0
   ret = ""
@@ -39,6 +57,9 @@ def sub_expr(str)
   }
 end
 
-input = File.readlines("d18.txt")
-res = input.map { |l| l.gsub(" ", "").gsub("\n", "") }.map { |l| scan(l) }.reduce(:+)
+input = File.readlines("d18.txt").map { |l| l.gsub(" ", "").gsub("\n", "") }
+res = input.map { |l| scan(l) }.reduce(:+)
 puts "Part 1: %d" % [res]
+
+res = input.map { |l| scan2(l).to_i }.reduce(:+)
+puts res
